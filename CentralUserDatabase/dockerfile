@@ -1,0 +1,16 @@
+
+
+
+FROM postgres
+
+WORKDIR /central-database
+
+COPY ./init.sql /docker-entrypoint-initdb.d/
+
+ENV POSTGRES_PASSWORD=123
+
+ENV POSTGRES_USER=LINKEDU
+
+ENV POSTGRES_DB=CentralUserDatabase
+
+EXPOSE 5432
