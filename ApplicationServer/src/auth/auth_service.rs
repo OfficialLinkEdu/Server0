@@ -8,6 +8,7 @@ pub mod auth_service {
 
     use axum::routing::{get, post};
     use axum::Router;
+    use rand::Rng;
     use serde::Deserialize;
     use sqlx::postgres::PgQueryResult;
     use sqlx::prelude::FromRow;
@@ -22,8 +23,8 @@ pub mod auth_service {
         school_code: String,
     }
 
-    //#[debug_handler]
     //Used for registering a new user
+    //#[debug_handler]
     pub async fn register_user(
         State(state): State<AppState>,
         Json(payload): Json<RegisterUserRequest>,
@@ -33,14 +34,20 @@ pub mod auth_service {
 
        match result_query {
         Ok(e)=>{
-            //Value exist's hence return 
-            println!("NOT FOUND, {:?}",e);
+            
+            // Error: Tried registering with an account that already exists
              StatusCode::CONFLICT
         }
         Err(e)=>
         {
-            println!("NOT FOUND, {}",e);
-            StatusCode::NOT_FOUND
+            //Not found, register user
+            //step 1: hash password
+            let mut salt_array: [u8;16] = [0;16];
+            rand::thread_rng().fill(&mut salt_array);
+            println!("\nTHe salted password is {:?}\n",salt_array);
+          let hashed_password =  bcrypt::hash_with_salt(payload.password, bcrypt::DEFAULT_COST, salt_array);
+            println!("\nThe Hashed password is {:?}",hashed_password);
+          StatusCode::NOT_FOUND
         }
            
        }

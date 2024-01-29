@@ -44,6 +44,7 @@ dependencies = [
  "bcrypt",
  "bytes",
  "lettre",
+ "rand",
  "serde",
  "sqlx",
  "tokio",
