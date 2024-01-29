@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4() UNIQUE,
     password_hash text NOT NULL,
     user_name varchar(32) NOT NULL,
-    email text NOT NULL UNIQUE
+    email text NOT NULL UNIQUE,
+    salt varchar(16) NOT NULL
 );
 
 
