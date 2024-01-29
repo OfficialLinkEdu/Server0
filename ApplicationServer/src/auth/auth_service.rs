@@ -35,7 +35,7 @@ pub mod auth_service {
         Ok(e)=>{
             //Value exist's hence return 
             println!("NOT FOUND, {:?}",e);
-             StatusCode::FOUND
+             StatusCode::CONFLICT
         }
         Err(e)=>
         {
