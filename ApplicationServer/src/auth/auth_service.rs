@@ -14,7 +14,7 @@ pub mod auth_service {
     use sqlx::query_as;
 
     use crate::AppState;
-    #[derive(Deserialize,FromRow)]
+    #[derive(Debug,Deserialize,FromRow)]
     struct RegisterUserRequest {
         user_name: String,
         email: String,
@@ -27,10 +27,24 @@ pub mod auth_service {
     pub async fn register_user(
         State(state): State<AppState>,
         Json(payload): Json<RegisterUserRequest>,
-    ) -> String {
+    ) -> StatusCode {
         //Step1: Query if an existing user exists (email)
-       let result_query = sqlx::query_as::<_,RegisterUserRequest>("SELECT FROM users WHERE email = $1").bind(&payload.email).fetch_one(&state.db_pool).await.unwrap_or_else(|Err|{});
-   
+       let result_query = sqlx::query_as::<_,RegisterUserRequest>("SELECT FROM users WHERE email = $1").bind(&payload.email).fetch_one(&state.db_pool).await;
+
+       match result_query {
+        Ok(e)=>{
+            //Value exist's hence return 
+            println!("NOT FOUND, {:?}",e);
+             StatusCode::FOUND
+        }
+        Err(e)=>
+        {
+            println!("NOT FOUND, {}",e);
+            StatusCode::NOT_FOUND
+        }
+           
+       }
+   /* 
         let query = sqlx::query(
             format!(
                 "INSERT INTO users (email, password_hash, user_name) VALUES ('{}','{}','{}')",
@@ -45,6 +59,7 @@ pub mod auth_service {
         println!("DONE");
 
         format!("Hi from")
+        */
     }
 
     pub fn auth_routers() -> Router<AppState> {
