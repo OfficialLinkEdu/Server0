@@ -50,12 +50,12 @@ pub mod auth_service {
                 rand::thread_rng().fill(&mut salt_array);
                 println!("\nTHe salted password is {:?}\n", salt_array);
                 let hashed_password =
-                    bcrypt::hash_with_salt(payload.password, bcrypt::DEFAULT_COST, salt_array).unwrap();
+                    bcrypt::hash_with_salt(payload.password, bcrypt::DEFAULT_COST, salt_array)
+                        .unwrap();
                 println!("\nThe Hashed password is {:?}", hashed_password);
                 // Step 2: insert new user into users table
-             let query_result =   sqlx::query("INSERT INTO users (email, password_hash, salt, user_name) VALUES($1, $2, $3, $4)").bind(payload.email).bind(hashed_password).bind(salt_array).bind(payload.user_name).execute(&state.db_pool).await;
-             
-             
+                let query_result =   sqlx::query("INSERT INTO users (email, password_hash, salt, user_name) VALUES($1, $2, $3, $4)").bind(payload.email).bind(hashed_password ).bind(salt_array).bind(payload.user_name).execute(&state.db_pool).await;
+
                 StatusCode::NOT_FOUND
             }
         }
