@@ -8,6 +8,15 @@
             "name": "test",
             "database": "CentralUserDatabase",
             "username": "LINKEDU"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "local",
+            "database": "CentralUserDatabase",
+            "username": "LINKEDU"
         }
     ]
 }

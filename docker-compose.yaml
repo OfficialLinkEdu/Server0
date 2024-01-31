@@ -3,15 +3,16 @@ version: '3'
 services:
   central_user_database:
     build: ./CentralUserDatabase/
-#    ports:
-#      - "5432:5432"
+    ports:
+      - "5432:5432"
 
-  load_balancer:
-    build: ./LoadBalancer/
-    ports:
-      - "80:80"
-    restart: always
-  application_server:
-    build: ./ApplicationServer/
-    ports:
-      - "81:8080"
+#  load_balancer:
+#    build: ./LoadBalancer/
+#    ports:
+#      - "80:80"
+#    restart: always
+#  application_server:
+#    build: ./ApplicationServer/
+#    ports:
+#      - "81:8080"
+#
