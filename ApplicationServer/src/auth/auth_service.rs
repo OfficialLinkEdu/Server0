@@ -5,8 +5,11 @@ pub mod auth_service {
         password_hash::{rand_core::OsRng, SaltString},
         PasswordHasher,
     };
-    use axum::{extract::{Json, State}, http::request};
     use axum::http::StatusCode;
+    use axum::{
+        extract::{Json, State},
+        http::request,
+    };
 
     use crate::AppState;
     use axum::routing::{get, post};
@@ -65,10 +68,13 @@ pub mod auth_service {
                 // Step 2: insert new user into users table
                 let query_result =   sqlx::query("INSERT INTO users (email, password_hash, salt, user_name) VALUES($1, $2, $3, $4)").bind(&payload.email).bind(password_hash).bind(salt_array.to_string()).bind(payload.user_name).execute(&state.db_pool).await;
                 // on sucesfful register, creaete a request to the respective school url server to register users in
-         let res =    state.http_client.get("http://localhost:85/").send().await.unwrap();
-                println!("{:?}",res);
-
-
+                let res = state
+                    .http_client
+                    .get("http://localhost:85/")
+                    .send()
+                    .await
+                    .unwrap();
+                println!("{:?}", res);
 
                 match query_result {
                     Ok(result) => {
