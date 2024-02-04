@@ -1,5 +1,5 @@
 pub mod auth_service {
-    use std::{os::macos::raw::stat, sync::Arc};
+    
 
     use argon2::{
         password_hash::{rand_core::OsRng, SaltString},
@@ -18,10 +18,10 @@ pub mod auth_service {
     use sqlx::prelude::FromRow;
     #[derive(Debug, Deserialize, FromRow)]
     struct RegisterUserRequest {
-        user_name: String,
         email: String,
         password: String,
         school_code: String,
+        user_name: String,
     }
 
     #[derive(sqlx::FromRow)]
@@ -40,7 +40,7 @@ pub mod auth_service {
     ) -> StatusCode {
         //Step1: Query if an existing user exists (email)
         let result_query = sqlx::query_as::<_, PrivateUserInformation>(
-            "SELECT CAST(id AS Text), password_hash, salt, user_name FROM users WHERE email = $1",
+            "SELECT * FROM users WHERE email = $1",
         )
         .bind(&payload.email)
         .fetch_one(&state.db_pool)
@@ -68,6 +68,8 @@ pub mod auth_service {
                 // Step 2: insert new user into users table
                 let query_result =   sqlx::query("INSERT INTO users (email, password_hash, salt, user_name) VALUES($1, $2, $3, $4)").bind(&payload.email).bind(password_hash).bind(salt_array.to_string()).bind(payload.user_name).execute(&state.db_pool).await;
                 // on sucesfful register, creaete a request to the respective school url server to register users in
+                StatusCode::UNPROCESSABLE_ENTITY
+              /* 
                 let res = state
                     .http_client
                     .get("http://localhost:85/")
@@ -88,6 +90,7 @@ pub mod auth_service {
                         return StatusCode::UNPROCESSABLE_ENTITY;
                     }
                 }
+                */
             }
         }
     }

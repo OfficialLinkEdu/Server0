@@ -13,8 +13,8 @@ async fn main() {
     // Init db pool
     let pg_pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect("postgres://LINKEDU:123@localhost:5432/CentralUserDatabase")
-        //      .connect("postgres://LINKEDU:123@central_user_database:5432/CentralUserDatabase")
+       // .connect("postgres://LINKEDU:123@localhost:5432/CentralUserDatabase")
+          .connect("postgres://LINKEDU:123@central_user_database:5432/CentralUserDatabase")
         .await
         .unwrap();
     let http_client = reqwest::Client::new();
