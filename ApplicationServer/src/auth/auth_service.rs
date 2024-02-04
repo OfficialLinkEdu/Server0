@@ -116,6 +116,8 @@ pub mod auth_service {
         .await
         .unwrap();
 
+        state.http_client.post("192.168.2.195")
+
         StatusCode::OK
     }
 
