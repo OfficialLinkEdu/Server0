@@ -1,5 +1,4 @@
 pub mod auth_service {
-    
 
     use argon2::{
         password_hash::{rand_core::OsRng, SaltString},
@@ -10,27 +9,17 @@ pub mod auth_service {
         extract::{Json, State},
         http::request,
     };
+    use serde_json::json;
 
-    use crate::AppState;
+    use crate::{
+        auth::model::database_models::{PrivateUserInformation, UserPayLoad},
+        auth::model::incoming_requests::RegisterUserRequest,
+        AppState,
+    };
     use axum::routing::{get, post};
     use axum::Router;
-    use serde::Deserialize;
-    use sqlx::prelude::FromRow;
-    #[derive(Debug, Deserialize, FromRow)]
-    struct RegisterUserRequest {
-        email: String,
-        password: String,
-        school_code: String,
-        user_name: String,
-    }
-
-    #[derive(sqlx::FromRow)]
-    struct PrivateUserInformation {
-        id: String,
-        password_hash: String,
-        salt: String,
-        user_name: String,
-    }
+    use serde::{Deserialize, Serialize};
+    use sqlx::sqlx_macros::FromRow;
 
     //Used for registering a new user
     //#[debug_handler]
@@ -39,12 +28,11 @@ pub mod auth_service {
         Json(payload): Json<RegisterUserRequest>,
     ) -> StatusCode {
         //Step1: Query if an existing user exists (email)
-        let result_query = sqlx::query_as::<_, PrivateUserInformation>(
-            "SELECT * FROM users WHERE email = $1",
-        )
-        .bind(&payload.email)
-        .fetch_one(&state.db_pool)
-        .await;
+        let result_query =
+            sqlx::query_as::<_, PrivateUserInformation>("SELECT * FROM users WHERE email = $1")
+                .bind(&payload.email)
+                .fetch_one(&state.db_pool)
+                .await;
 
         match result_query {
             Ok(e) => {
@@ -52,45 +40,43 @@ pub mod auth_service {
                 StatusCode::CONFLICT
             }
             Err(e) => {
-                println!("ERROR IS {}\n", e);
                 //Not found, register user
                 //step 1: hash password
                 let mut salt_array: SaltString = SaltString::generate(OsRng);
-                println!("Salt array is: {}", salt_array);
                 let password_hash = argon2::Argon2::default()
                     .hash_password(&payload.password.as_bytes(), &salt_array)
                     .unwrap()
                     .hash
                     .unwrap()
                     .to_string();
-                println!("\nHash is: {:?}", password_hash);
 
                 // Step 2: insert new user into users table
-                let query_result =   sqlx::query("INSERT INTO users (email, password_hash, salt, user_name) VALUES($1, $2, $3, $4)").bind(&payload.email).bind(password_hash).bind(salt_array.to_string()).bind(payload.user_name).execute(&state.db_pool).await;
+                sqlx::query("INSERT INTO users (email, password_hash, salt, user_name) VALUES($1, $2, $3, $4)")
+                .bind(&payload.email)
+                .bind(password_hash)
+                .bind(salt_array.to_string())
+                .bind(&payload.user_name)
+                .execute(&state.db_pool).await.unwrap();
                 // on sucesfful register, creaete a request to the respective school url server to register users in
-                StatusCode::UNPROCESSABLE_ENTITY
-              /* 
-                let res = state
+
+                let req: UserPayLoad = sqlx::query_as::<_, UserPayLoad>(
+                    "SELECT id::text, user_name FROM users WHERE email = $1",
+                )
+                .bind(&payload.email)
+                .fetch_one(&state.db_pool)
+                .await
+                .unwrap();
+                let body = serde_json::to_string(&req).unwrap();
+                let req = state
                     .http_client
-                    .get("http://localhost:85/")
+                    .post("http://192.168.2.195:8080/authService/createUser")
+                    .header("Content-Type", "application/json")
+                    .body(body)
                     .send()
                     .await
                     .unwrap();
-                println!("{:?}", res);
 
-                match query_result {
-                    Ok(result) => {
-                        let new_payload: LoginForm = LoginForm {
-                            email: payload.email,
-                            password: payload.password,
-                        };
-                        return sign_in_user(Json(new_payload), State(state)).await;
-                    }
-                    Err(_) => {
-                        return StatusCode::UNPROCESSABLE_ENTITY;
-                    }
-                }
-                */
+                StatusCode::UNPROCESSABLE_ENTITY
             }
         }
     }
@@ -118,8 +104,6 @@ pub mod auth_service {
         .fetch_one(&state.db_pool)
         .await
         .unwrap();
-
-        state.http_client.post("192.168.2.195")
 
         StatusCode::OK
     }
