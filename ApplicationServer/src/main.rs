@@ -34,7 +34,7 @@ async fn main() {
     axum::serve(server, app).await.unwrap();
 }
 
-async fn hello_world(State(state): State<AppState>) -> &'static str {
+async fn hello_world(State(_state): State<AppState>) -> &'static str {
     println!("scoped");
     "Hello World"
 }

@@ -1,5 +1,5 @@
 pub mod email_service {
-    use axum::routing::get;
+    
     use axum::{routing::post, Json, Router};
     use lettre::message::header::ContentType;
     use lettre::transport::smtp::authentication::Credentials;

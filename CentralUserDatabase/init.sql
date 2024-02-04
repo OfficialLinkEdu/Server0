@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash text NOT NULL,
     user_name varchar(32) NOT NULL,
     email text NOT NULL UNIQUE,
-    salt text NOT NULL
+    salt text NOT NULL,
+    school_code varchar(10) NOT NULL
 );
 
 
