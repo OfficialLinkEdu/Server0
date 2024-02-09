@@ -69,16 +69,12 @@ pub mod auth_service {
 
                 let body = serde_json::to_string(&req).unwrap();
                 println!("\n{body}\n");
+            use crate::endpoints::windows_ip;
 
-                state
-                    .http_client
-                    .get("http://192.168.2.195:8080/")
-                    .send()
-                    .await
-                    .unwrap();
+
                 let _req = state
                     .http_client
-                    .post("http://192.168.2.195:8080/authService/createUser")
+                    .post(format!("http://{}:82/authService/createUser", windows_ip))
                     .header("Content-Type", "application/json")
                     .body(body)
                     .send()
@@ -108,20 +104,7 @@ pub mod auth_service {
         Json(payload): Json<LoginForm>,
         State(state): State<AppState>,
     ) -> StatusCode {
-        /*
-        Since this will be the only sign in,
-        re-query user information
-            */
-
-        let _query_result: PrivateUserInformation = sqlx::query_as::<_, PrivateUserInformation>(
-            "SELECT CAST(id AS TEXT), password_hash, salt, user_name FROM users WHERE email = $1",
-        )
-        .bind(&payload.email)
-        .fetch_one(&state.db_pool)
-        .await
-        .unwrap();
-
-        StatusCode::OK
+       // Start here
     }
 
     pub fn auth_routers() -> Router<AppState> {

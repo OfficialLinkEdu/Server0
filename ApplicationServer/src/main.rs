@@ -8,6 +8,8 @@ use email::email_service::email_service::routers;
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
+
+mod endpoints;
 #[tokio::main]
 async fn main() {
     // Init db pool
