@@ -24,7 +24,7 @@ pub mod database_models {
     #[derive(sqlx::FromRow)]
     pub struct PrivateUserInformation {
         id: String,
-        password_hash: String,
+       pub password_hash: String,
         salt: String,
         user_name: String,
         school_code: String,

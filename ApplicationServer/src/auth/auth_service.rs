@@ -1,10 +1,9 @@
 pub mod auth_service {
 
     use argon2::{
-        password_hash::{rand_core::OsRng, SaltString},
-        PasswordHasher,
+        password_hash::{rand_core::OsRng, SaltString}, Argon2, PasswordHash, PasswordHasher, PasswordVerifier
     };
-    use axum::extract::{Json, State};
+    use axum::{body, extract::{Json, State}};
     use axum::{http::StatusCode, response::Response};
 
     use crate::{
@@ -103,8 +102,37 @@ pub mod auth_service {
     async fn sign_in_user(
         Json(payload): Json<LoginForm>,
         State(state): State<AppState>,
-    ) -> StatusCode {
-       // Start here
+    ) -> Response {
+        // First see if user exists
+
+        let result = sqlx::query_as::<_,PrivateUserInformation>("SELECT * FROM users WHERE email = $1").bind(&payload.email).fetch_one(&state.db_pool).await;
+        
+        match result {
+            Ok(query) => {
+                //The user exists, continue to authorize
+             let valid_password: bool = Argon2::default().verify_password(&payload.password.as_bytes(), &PasswordHash::new( &query.password_hash).unwrap()).is_ok();
+
+                if valid_password
+                {
+                    println!("Good password");
+                }
+                else {
+                    println!("bad password");
+                }
+
+
+                Response::builder().status(StatusCode::CONFLICT).body(body::Body::from("This account may not exist")).unwrap()
+
+               
+            }
+            Err(_) =>
+            {
+               // User dosen't exist 
+               Response::builder().status(StatusCode::CONFLICT).body(body::Body::from("This account may not exist")).unwrap()
+
+            }
+        }
+
     }
 
     pub fn auth_routers() -> Router<AppState> {
