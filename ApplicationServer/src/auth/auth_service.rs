@@ -1,7 +1,7 @@
 pub mod auth_service {
 
     use argon2::{
-        password_hash::{rand_core::OsRng, SaltString}, Argon2, PasswordHash, PasswordHasher, PasswordVerifier
+        password_hash::{rand_core::OsRng, Salt, SaltString}, Argon2, PasswordHash, PasswordHasher, PasswordVerifier
     };
     use axum::{body, extract::{Json, State}};
     use axum::{http::StatusCode, response::Response};
@@ -42,9 +42,7 @@ pub mod auth_service {
                 let password_hash = argon2::Argon2::default()
                     .hash_password(&payload.password.as_bytes(), &salt_array)
                     .unwrap()
-                    .hash
-                    .unwrap()
-                    .to_string();
+                  .to_string();
 
                 // Step 2: insert into central user database table
                 sqlx::query("INSERT INTO users (email, password_hash, salt, user_name, school_code) VALUES($1, $2, $3, $4, $5)")
@@ -100,33 +98,27 @@ pub mod auth_service {
     }
 
     async fn sign_in_user(
-        Json(payload): Json<LoginForm>,
-        State(state): State<AppState>,
+        State(state): State<AppState>,        Json(payload): Json<LoginForm>
     ) -> Response {
         // First see if user exists
-
-        let result = sqlx::query_as::<_,PrivateUserInformation>("SELECT * FROM users WHERE email = $1").bind(&payload.email).fetch_one(&state.db_pool).await;
+        println!("RUNNING SIGN IN");
+        let result = sqlx::query_as::<_,PrivateUserInformation>("SELECT CAST(id AS text), password_hash, salt, user_name, school_code FROM users WHERE email = $1").bind(&payload.email).fetch_one(&state.db_pool).await;
         
         match result {
             Ok(query) => {
-                //The user exists, continue to authorize
-             let valid_password: bool = Argon2::default().verify_password(&payload.password.as_bytes(), &PasswordHash::new( &query.password_hash).unwrap()).is_ok();
 
-                if valid_password
-                {
-                    println!("Good password");
-                }
-                else {
-                    println!("bad password");
-                }
+            
+             let res =   Argon2::default().verify_password(payload.password.as_bytes(), &PasswordHash::new(&query.password_hash).unwrap());
 
+  println!("{:?}",res);
 
-                Response::builder().status(StatusCode::CONFLICT).body(body::Body::from("This account may not exist")).unwrap()
+                Response::builder().status(StatusCode::CONFLICT).body(body::Body::from("This account may not exist 1")).unwrap()
 
                
             }
-            Err(_) =>
+            Err(e) =>
             {
+                println!("UH OH: {:?}",e);
                // User dosen't exist 
                Response::builder().status(StatusCode::CONFLICT).body(body::Body::from("This account may not exist")).unwrap()
 
@@ -136,6 +128,8 @@ pub mod auth_service {
     }
 
     pub fn auth_routers() -> Router<AppState> {
-        Router::new().route("/registerUser", post(register_user))
+        Router::new()
+        .route("/registerUser", post(register_user))
+        .route("/loginUser", post(sign_in_user))
     }
 }

@@ -25,7 +25,7 @@ pub mod database_models {
     pub struct PrivateUserInformation {
         id: String,
        pub password_hash: String,
-        salt: String,
+       pub salt: String,
         user_name: String,
         school_code: String,
     }
