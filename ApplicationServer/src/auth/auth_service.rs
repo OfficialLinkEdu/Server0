@@ -41,7 +41,7 @@ pub mod auth_service {
                 let salt_array: SaltString = SaltString::generate(OsRng);
                 let password_hash = argon2::Argon2::default()
                     .hash_password(&payload.password.as_bytes(), &salt_array)
-                    .unwrap()
+                    .unwrap().hash.unwrap()
                   .to_string();
 
                 // Step 2: insert into central user database table
@@ -75,8 +75,8 @@ pub mod auth_service {
                     .header("Content-Type", "application/json")
                     .body(body)
                     .send()
-                    .await
-                    .unwrap();
+                    .await.unwrap();
+       
 
                 // println!("----------\nThe req is:\n{:?}\n----------");
                 let response_body = _req.json::<UserResponseData>().await.unwrap();
