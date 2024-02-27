@@ -127,7 +127,7 @@ pub mod auth_service {
                 let req = state
                     .http_client
                     .get(format!(
-                        "http://{}/authService/createUser/{}",
+                        "http://{}/authService/fetchUserData/{}",
                         occ_ip, query.id
                     ))
                     .send()
