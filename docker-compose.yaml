@@ -5,12 +5,17 @@ services:
     build: ./CentralUserDatabase/
     ports:
      - "5432:5432"
+    environment:
+      - DOCKER_DEFAULT_PLATFORM=linux/amd64
+    platform: linux/amd64
   load_balancer:
    build: ./LoadBalancer/
    ports:
      - "80:80"
    restart: always
+   platform: linux/amd64
   application_server:
     build: ./ApplicationServer/
     ports:
       - "81:8080"
+    platform: linux/amd64

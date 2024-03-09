@@ -13,7 +13,7 @@ pub mod auth_service {
     use axum::{http::StatusCode, response::Response};
 
     use crate::auth::model::responses::{ UserResponseData};
-    use crate::endpoints::occ_ip;
+    use crate::endpoints::OCC_IP;
     use crate::{
         auth::model::database_models::{PrivateUserInformation, UserPayLoadToSchool},
         auth::model::incoming_requests::{LoginForm, RegisterUserRequest},
@@ -78,7 +78,7 @@ pub mod auth_service {
 
                 let _req = state
                     .http_client
-                    .post(format!("http://{}/authService/createUser", occ_ip))
+                    .post(format!("http://{}/authService/createUser", OCC_IP))
                     .header("Content-Type", "application/json")
                     .body(body)
                     .send()
@@ -128,7 +128,7 @@ pub mod auth_service {
                     .http_client
                     .get(format!(
                         "http://{}/authService/fetchUserData/{}",
-                        occ_ip, query.id
+                        OCC_IP, query.id
                     ))
                     .send()
                     .await
