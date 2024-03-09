@@ -5,6 +5,8 @@ services:
     build: ./CentralUserDatabase/
     ports:
      - "5432:5432"
+    volumes:
+      - C:/Users/Daniel/Desktop:/var/lib/postgresql/data
   load_balancer:
    build: ./LoadBalancer/
    ports:
@@ -12,5 +14,5 @@ services:
    restart: always
   application_server:
     build: ./ApplicationServer/
-    ports:
-      - "81:8080"
+#    ports:
+#      - "81:8080"
