@@ -40,7 +40,7 @@ pub mod auth_service {
             Ok(_e) => Response::builder()
                 .status(StatusCode::CONFLICT)
                 .header("Content-Type", "application/json")
-                .body(axum::body::Body::from(""))
+                .body(axum::body::Body::from("Account already exists"))
                 .unwrap(),
             Err(_e) => {
                 //step 1: hash password
@@ -54,12 +54,13 @@ pub mod auth_service {
                 println!("HASH IS {}", password_hash);
 
                 // Step 2: insert into central user database table
-                sqlx::query("INSERT INTO users (email, password_hash, salt, user_name, school_code) VALUES($1, $2, $3, $4, $5)")
+                sqlx::query("INSERT INTO users (email, password_hash, salt, user_name, school_code, school_email) VALUES($1, $2, $3, $4, $5, $6)")
                 .bind(&payload.email)
                 .bind(password_hash)
                 .bind(salt_array.to_string())
                 .bind(&payload.user_name)
                 .bind(&payload.school_code)
+                .bind(&payload.school_email)
                 .execute(&state.db_pool).await.unwrap();
                 // on sucesfful register, creaete a request to the respective school url server to register users in
 
@@ -78,7 +79,7 @@ pub mod auth_service {
 
                 let _req = state
                     .http_client
-                    .post(format!("http://{}/authService/createUser", occ_ip))
+                    .post(format!("http://{}/OCC/authService/createUser", occ_ip))
                     .header("Content-Type", "application/json")
                     .body(body)
                     .send()
@@ -127,7 +128,7 @@ pub mod auth_service {
                 let req = state
                     .http_client
                     .get(format!(
-                        "http://{}/authService/fetchUserData/{}",
+                        "http://{}/OCC/authService/fetchUserData/{}",
                         occ_ip, query.id
                     ))
                     .send()

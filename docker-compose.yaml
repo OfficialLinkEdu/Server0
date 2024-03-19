@@ -1,18 +1,29 @@
-
 version: '3'
 services:
   central_user_database:
+    container_name: CentralDatabase
     build: ./CentralUserDatabase/
     ports:
-     - "5432:5432"
-    volumes:
-      - C:/Users/Daniel/Desktop:/var/lib/postgresql/data
+      - "5432:5432"
+    networks:
+      - Backend_Server_0
+  #    volumes:
+  #      - F:\Server0:/var/lib/postgresql/data
   load_balancer:
-   build: ./LoadBalancer/
-   ports:
-     - "80:80"
-   restart: always
+    build: ./LoadBalancer/
+    ports:
+      - "80:80"
+    restart: always
+    networks:
+      - Backend_Server_0
   application_server:
+
     build: ./ApplicationServer/
+    networks:
+      - Backend_Server_0
 #    ports:
 #      - "81:8080"
+
+networks:
+  Backend_Server_0:
+    external: true
