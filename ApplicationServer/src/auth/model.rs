@@ -9,6 +9,7 @@ pub mod incoming_requests {
         pub password: String,
         pub school_code: String,
         pub user_name: String,
+        pub school_email: String
     }
 
     // Used for signing in
@@ -23,6 +24,8 @@ pub mod database_models {
     use serde::Serialize;
     use sqlx::FromRow;
 
+
+    // ! UserPayLoadToSchool is the only value that can be sent to fetch school account
     #[derive(FromRow, Serialize)]
     pub struct UserPayLoadToSchool {
         pub id: String,
@@ -50,6 +53,8 @@ pub mod responses {
         pub public_id: String,
         pub user_name: String,
         pub jwt: String,
+        pub profile_picture_url: Option<String>,
+        pub gender: Option<String>
     }
 
 }
