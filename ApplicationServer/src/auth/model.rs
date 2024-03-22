@@ -26,18 +26,21 @@ pub mod database_models {
 
 
     // ! UserPayLoadToSchool is the only value that can be sent to fetch school account
-    #[derive(FromRow, Serialize)]
+    #[derive(FromRow, Serialize,Clone)]
     pub struct UserPayLoadToSchool {
         pub id: String,
         pub user_name: String,
+
+        pub school_email: String
     }
+
 
     #[derive(sqlx::FromRow)]
     pub struct PrivateUserInformation {
       pub  id: String,
         pub password_hash: String,
         pub salt: String,
-      user_name: String,
+      email: String,
         school_code: String,
     }
 }

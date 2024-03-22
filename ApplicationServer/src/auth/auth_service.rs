@@ -19,6 +19,7 @@ pub mod auth_service {
         auth::model::incoming_requests::{LoginForm, RegisterUserRequest},
         AppState,
     };
+    use sqlx::types::Uuid;
     use axum::routing::post;
     use axum::Router;
     use serde::Deserialize;
@@ -34,7 +35,7 @@ pub mod auth_service {
                 .bind(&payload.email)
                 .fetch_one(&state.db_pool)
                 .await;
-
+        
         match result_query {
             // If queryable, then it exists
             Ok(_e) => Response::builder()
@@ -43,6 +44,7 @@ pub mod auth_service {
                 .body(axum::body::Body::from("Account already exists"))
                 .unwrap(),
             Err(_e) => {
+                
                 //step 1: hash password
                 let salt_array: SaltString = SaltString::generate(OsRng);
                 let password_hash = argon2::Argon2::default()
@@ -52,27 +54,22 @@ pub mod auth_service {
                     .unwrap()
                     .to_string();
                 println!("HASH IS {}", password_hash);
-
+                let user_id =  Uuid::new_v4();
                 // Step 2: insert into central user database table
-                sqlx::query("INSERT INTO users (email, password_hash, salt, user_name, school_code, school_email) VALUES($1, $2, $3, $4, $5, $6)")
+                sqlx::query("INSERT INTO users (email, password_hash, salt, school_code, id) VALUES($1, $2, $3, $4, $5)")
                 .bind(&payload.email)
                 .bind(password_hash)
                 .bind(salt_array.to_string())
-                .bind(&payload.user_name)
+                //.bind(&payload.user_name)
                 .bind(&payload.school_code)
-                .bind(&payload.school_email)
+                .bind(&user_id)
                 .execute(&state.db_pool).await.unwrap();
                 // on sucesfful register, creaete a request to the respective school url server to register users in
 
                 // For future ref, just create the struct instead of query
                 //If this is done use sqlx v4 feature to generate the uuid here isntead of DB
-                let req: UserPayLoadToSchool = sqlx::query_as::<_, UserPayLoadToSchool>(
-                    "SELECT id::text, user_name FROM users WHERE email = $1",
-                )
-                .bind(&payload.email)
-                .fetch_one(&state.db_pool)
-                .await
-                .unwrap();
+                let req: UserPayLoadToSchool = UserPayLoadToSchool{id: user_id.to_string(),user_name: payload.user_name,school_email: payload.school_email};
+            
 
                 let body = serde_json::to_string(&req).unwrap();
                 println!("\n{body}\n");
@@ -90,7 +87,7 @@ pub mod auth_service {
                 let response_body = _req.json::<UserResponseData>().await.unwrap();
                 let body = serde_json::to_string(&response_body).unwrap();
                 Response::builder()
-                    .status(StatusCode::OK)
+                    .status(StatusCode::CREATED)
                     .header("Content-Type", "application/json")
                     .body(axum::body::Body::from(body))
                     .unwrap()
@@ -104,7 +101,7 @@ pub mod auth_service {
     ) -> Response {
         // First see if user exists
         println!("RUNNING SIGN IN,{}", payload.password);
-        let result = sqlx::query_as::<_,PrivateUserInformation>("SELECT CAST(id AS text), password_hash, salt, user_name, school_code FROM users WHERE email = $1").bind(&payload.email).fetch_one(&state.db_pool).await;
+        let result = sqlx::query_as::<_,PrivateUserInformation>("SELECT CAST(id AS text), password_hash, salt, email, school_code FROM users WHERE email = $1").bind(&payload.email).fetch_one(&state.db_pool).await;
 
         match result {
             Ok(query) => {

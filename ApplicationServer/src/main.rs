@@ -3,11 +3,10 @@ mod auth;
 use auth::auth_service::auth_service::auth_routers;
 
 mod email;
-use email::email_service::email_service::routers;
+use email::email_service::email_service::email_routers;
 
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-
 
 mod endpoints;
 #[tokio::main]
@@ -15,8 +14,8 @@ async fn main() {
     // Init db pool
     let pg_pool = PgPoolOptions::new()
         .max_connections(5)
-       // .connect("postgres://LINKEDU:123@localhost:5432/CentralUserDatabase")
-       .connect("postgres://LINKEDU:123@CentralDatabase:5432/CentralUserDatabase")
+        // .connect("postgres://LINKEDU:123@localhost:5432/CentralUserDatabase")
+        .connect("postgres://LINKEDU:123@CentralDatabase:5432/CentralUserDatabase")
         .await
         .unwrap();
     let http_client = reqwest::Client::new();
@@ -29,8 +28,8 @@ async fn main() {
     let app = Router::new()
         .route("/testServer0", get(hello_world))
         .nest("/authService", auth_routers())
-        .with_state(shared_state)
-        .nest("/emailService", routers());
+        .nest("/emailService", email_routers())
+        .with_state(shared_state);
 
     let server = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     axum::serve(server, app).await.unwrap();

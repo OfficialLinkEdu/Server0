@@ -9,13 +9,7 @@ services:
       - Backend_Server_0
   #    volumes:
   #      - F:\Server0:/var/lib/postgresql/data
-  load_balancer:
-    build: ./LoadBalancer/
-    ports:
-      - "80:80"
-    restart: always
-    networks:
-      - Backend_Server_0
+
   application_server:
 
     build: ./ApplicationServer/
@@ -23,6 +17,13 @@ services:
       - Backend_Server_0
 #    ports:
 #      - "81:8080"
+  load_balancer:
+    build: ./LoadBalancer/
+    ports:
+      - "80:80"
+    restart: always
+    networks:
+      - Backend_Server_0
 
 networks:
   Backend_Server_0:
