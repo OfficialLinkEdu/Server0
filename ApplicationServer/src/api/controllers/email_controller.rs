@@ -8,7 +8,7 @@ pub mod email_service {
     use lettre::transport::smtp::authentication::Credentials;
     use lettre::{Message, SmtpTransport, Transport};
 
-    use crate::endpoints::occ_ip;
+    use crate::api::helpers::endpoints::occ_ip;
     use crate::AppState;
     use reqwest::StatusCode;
     use serde::Deserialize;

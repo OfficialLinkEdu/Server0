@@ -12,11 +12,9 @@ pub mod auth_service {
     };
     use axum::{http::StatusCode, response::Response};
 
-    use crate::auth::model::responses::{ UserResponseData};
-    use crate::endpoints::occ_ip;
+    use crate::api::models::model::{database_models::{PrivateUserInformation, UserPayLoadToSchool}, incoming_requests::{LoginForm, RegisterUserRequest}, responses::UserResponseData};
+    use crate::api::helpers::endpoints::occ_ip;
     use crate::{
-        auth::model::database_models::{PrivateUserInformation, UserPayLoadToSchool},
-        auth::model::incoming_requests::{LoginForm, RegisterUserRequest},
         AppState,
     };
     use sqlx::types::Uuid;
@@ -117,8 +115,22 @@ pub mod auth_service {
                 };
                 println!("{}", hash);
                 let res = Argon2::default()
-                    .verify_password(payload.password.as_bytes(), &hash)
-                    .unwrap();
+                    .verify_password(payload.password.as_bytes(), &hash);
+                match res
+                {
+                    Ok(_) => {
+                        //Continue with functrion
+                     //   res.unwrap();
+                    },
+                    Err(e) =>
+                    {
+                      return Response::builder().status(StatusCode::CONFLICT).body(body::Body::from("The account associated with the provided email or password doesn't exist. Please check your credentials and try again.")).unwrap();
+
+                    }
+                }
+                
+                    
+                
 
                 println!("{:?}", res);
                 //  Fetch credentials from occ
@@ -133,6 +145,10 @@ pub mod auth_service {
                     .unwrap();
 
                 let response_body = req.json::<UserResponseData>().await.unwrap();
+                  println!("{:?}",response_body);
+
+
+
              
                 let body = serde_json::to_string(&response_body).unwrap();
              //   println!("JSON STRING IS {:?}", &body.user_name);
@@ -147,7 +163,7 @@ pub mod auth_service {
                 // Account with email dosen't exist
                 println!("UH OH: {:?}", e);
                 // User dosen't exist
-                Response::builder().status(StatusCode::CONFLICT).body(body::Body::from("The account associated with the provided email or password doesn't exist. Please double-check your credentials and try again.")).unwrap()
+                Response::builder().status(StatusCode::CONFLICT).body(body::Body::from("The account associated with the provided email or password doesn't exist. Please check your credentials and try again.")).unwrap()
             }
         }
     }

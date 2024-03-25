@@ -57,7 +57,7 @@ pub mod responses {
         pub user_name: String,
         pub jwt: String,
         pub profile_picture_url: Option<String>,
-        pub gender: Option<String>
+        pub gender: Option<i16>
     }
 
 }

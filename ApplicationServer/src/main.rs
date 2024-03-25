@@ -1,14 +1,13 @@
 use axum::{extract::State, routing::get, Router};
-mod auth;
-use auth::auth_service::auth_service::auth_routers;
 
-mod email;
-use email::email_service::email_service::email_routers;
 
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
-mod endpoints;
+mod api;
+
+use api::controllers::{email_controller::email_service::email_routers, auth_controller::auth_service::auth_routers};
+
 #[tokio::main]
 async fn main() {
     // Init db pool
@@ -27,8 +26,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/testServer0", get(hello_world))
-        .nest("/authService", auth_routers())
-        .nest("/emailService", email_routers())
+        .nest("/", api::routes::routes::all_routes())
         .with_state(shared_state);
 
     let server = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
